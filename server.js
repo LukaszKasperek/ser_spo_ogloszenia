@@ -2,14 +2,12 @@ const express = require('express');
 const multer = require('multer');
 const cors = require('cors');
 const sendEmail = require('./utils/sendMail');
-
-// @addons
 const { query, validationResult } = require('express-validator');
-const app = express();
 const helmet = require('helmet');
 const hpp = require('hpp');
 const rateLimit = require('express-rate-limit');
 
+const app = express();
 const port = process.env.PORT || 5000;
 
 app.use(
@@ -53,7 +51,6 @@ app.use(
 );
 app.use('/upload', limiter);
 
-// Konfiguracja multer
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, 'uploads/');
@@ -75,14 +72,12 @@ const fileFilter = (req, file, cb) => {
   }
 };
 
-// konfiguracja multer
 const upload = multer({
   storage: storage,
   fileFilter: fileFilter,
   limits: { fileSize: 1024 * 1024 * 10 }, // 10MB
 });
 
-// @Middleware
 const checkFileCount = (req, res, next) => {
   if (req.files.length > 3) {
     return res.status(400).json({ error: 'Więcej niż 3 pliki' });
@@ -103,13 +98,9 @@ app.post(
 
     try {
       await sendEmail(sender, message, files);
-      res.status(200).json({
-        message: 'ok',
-      });
+      res.status(200).json({ message: 'ok' });
     } catch (error) {
-      res.status(500).json({
-        message: 'error',
-      });
+      res.status(500).json({ message: 'error' });
     }
   }
 );
