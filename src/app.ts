@@ -1,0 +1,87 @@
+import express from 'express';
+import cors from 'cors';
+import helmet from 'helmet';
+import hpp from 'hpp';
+import rateLimit from 'express-rate-limit';
+
+import { RATE_LIMIT_MAX, RATE_LIMIT_WINDOW_MS } from './constants';
+import uploadRoutes from './routes/upload';
+import { errorHandler } from './middleware/errorHandler';
+
+const app = express();
+
+function resolveTrustProxyValue(): boolean | number {
+  const value = process.env.TRUST_PROXY;
+
+  if (!value) {
+    return process.env.NODE_ENV === 'production' ? 1 : false;
+  }
+
+  if (value === 'true') return true;
+  if (value === 'false') return false;
+
+  const numericValue = Number(value);
+  return Number.isNaN(numericValue) ? false : numericValue;
+}
+
+app.set('trust proxy', resolveTrustProxyValue());
+
+app.use(
+  helmet({
+    contentSecurityPolicy: false,
+    crossOriginEmbedderPolicy: true,
+    crossOriginOpenerPolicy: true,
+    crossOriginResourcePolicy: true,
+    originAgentCluster: true,
+    referrerPolicy: { policy: ['origin'] },
+    strictTransportSecurity: {
+      maxAge: 63072000,
+      includeSubDomains: true,
+      preload: true,
+    },
+    xContentTypeOptions: true,
+    xDnsPrefetchControl: { allow: false },
+    xDownloadOptions: true,
+    xFrameOptions: { action: 'deny' },
+    xPermittedCrossDomainPolicies: { permittedPolicies: 'none' },
+    xPoweredBy: false,
+    xXssProtection: false,
+  }),
+);
+
+app.use(hpp());
+app.disable('x-powered-by');
+
+app.use(express.json({ limit: '100kb' }));
+
+app.use(
+  cors({
+    origin: ['https://spottedlezajsk.pl', 'https://www.spottedlezajsk.pl'],
+    methods: ['POST', 'OPTIONS'],
+    allowedHeaders: ['Content-Type'],
+    credentials: false,
+  }),
+);
+
+const limiter = rateLimit({
+  max: RATE_LIMIT_MAX,
+  windowMs: RATE_LIMIT_WINDOW_MS,
+  standardHeaders: true,
+  legacyHeaders: false,
+  handler: (_req, res) => {
+    res
+      .status(429)
+      .json({ error: 'Zbyt wiele żądań, spróbuj ponownie później.' });
+  },
+});
+
+app.use('/upload', limiter);
+app.use(uploadRoutes);
+
+app.get(/.*/, (_req, res) => {
+  res.send('x_spo');
+});
+
+app.use(errorHandler);
+
+export default app;

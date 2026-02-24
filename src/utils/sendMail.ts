@@ -1,7 +1,6 @@
-const nodemailer = require('nodemailer');
-const dotenv = require('dotenv').config({ path: './config.env', quiet: true });
+import nodemailer from 'nodemailer';
 
-let transporter = nodemailer.createTransport({
+const transporter = nodemailer.createTransport({
   host: 'smtp.gmail.com',
   port: 587,
   secure: false,
@@ -11,7 +10,11 @@ let transporter = nodemailer.createTransport({
   },
 });
 
-async function sendEmail(sender, message, files) {
+export async function sendEmail(
+  sender: string,
+  message: string,
+  files: Express.Multer.File[],
+): Promise<void> {
   const mailOptions = {
     from: process.env.EMAIL,
     to: process.env.EMAIL,
@@ -32,5 +35,3 @@ async function sendEmail(sender, message, files) {
     throw error;
   }
 }
-
-module.exports = sendEmail;

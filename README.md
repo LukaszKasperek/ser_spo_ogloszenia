@@ -1,10 +1,10 @@
 # Spotted Leżajsk – API
 
-Backend API dla formularza „Spotted” – przyjmuje wiadomości (z opcjonalnymi zdjęciami) i wysyła je mailem.
+Backend API dla formularza „Spotted" – przyjmuje wiadomości (z opcjonalnymi zdjęciami) i wysyła je mailem.
 
 ## Wymagania
 
-- Node.js
+- Node.js >= 18
 - Konto Gmail (SMTP) do wysyłki maili
 
 ## Instalacja
@@ -30,11 +30,29 @@ Opcjonalnie:
 
 ## Uruchomienie
 
+### Development
+
 ```bash
+npm run dev
+```
+
+Serwer startuje z `nodemon` + `tsx` (przeładowanie przy zmianach). Domyślnie nasłuchuje na porcie 5000.
+
+### Produkcja
+
+```bash
+npm run build
 npm start
 ```
 
-Serwer startuje z `nodemon` (przeładowanie przy zmianach). Domyślnie nasłuchuje na porcie 5000.
+`build` kompiluje TypeScript do `dist/`, `start` uruchamia skompilowany JS.
+
+## Deploy na MyDevil
+
+1. Lokalnie: `npm run build`
+2. Upload na serwer: `dist/`, `package.json`, `package-lock.json`, `config.env`
+3. Na serwerze: `npm install --production`
+4. Start: `node dist/server.js` (lub Passenger wskazujący na `dist/server.js`)
 
 ## API
 
@@ -83,10 +101,22 @@ Odpowiedź: `x_spo` (tekst). Służy m.in. do weryfikacji działania API.
 
 ```
 .
-├── server.js           # Aplikacja Express, trasy, multer, rate limit
-├── utils/
-│   └── sendMail.js     # Nodemailer, wysyłka na EMAIL z config.env
-├── config.env          # (tworzony ręcznie) EMAIL, PASSWORD
+├── src/
+│   ├── server.ts                # Entry point: dotenv, import app, listen
+│   ├── app.ts                   # Konfiguracja Express (middleware, routes)
+│   ├── constants.ts             # Stałe (limity, MIME, nadawcy, rate limit)
+│   ├── routes/
+│   │   └── upload.ts            # Definicja POST /upload (multer, walidacja)
+│   ├── controllers/
+│   │   └── uploadController.ts  # Logika handlera uploadu
+│   ├── middleware/
+│   │   └── errorHandler.ts      # Globalny error handler
+│   └── utils/
+│       ├── sendMail.ts          # Nodemailer, wysyłka maili
+│       └── fileHelpers.ts       # Walidacja sygnatur, cleanup plików
+├── dist/                        # Skompilowany JS (generowany przez tsc)
+├── config.env                   # (tworzony ręcznie) EMAIL, PASSWORD
+├── tsconfig.json
 └── package.json
 ```
 
