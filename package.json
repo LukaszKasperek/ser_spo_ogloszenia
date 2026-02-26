@@ -2,11 +2,11 @@
   "name": "spotted",
   "version": "1.0.0",
   "description": "Backend API dla formularza Spotted",
-  "main": "dist/server.js",
+  "main": "app.js",
   "scripts": {
     "dev": "nodemon --exec tsx src/server.ts",
     "build": "rimraf dist && tsc",
-    "start": "node dist/server.js"
+    "start": "node app.js"
   },
   "author": "",
   "license": "ISC",
