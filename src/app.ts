@@ -79,7 +79,7 @@ app.use('/upload', limiter);
 app.use(uploadRoutes);
 
 app.get(/.*/, (_req, res) => {
-  res.send('x_spo');
+  res.send('x');
 });
 
 app.use(errorHandler);

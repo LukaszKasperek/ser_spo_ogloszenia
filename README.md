@@ -47,6 +47,26 @@ npm start
 
 `build` kompiluje TypeScript do `dist/`, `start` uruchamia skompilowany JS.
 
+## Testy
+
+Projekt używa `Vitest` (unit) i `Supertest` (integration HTTP).
+
+```bash
+npm run test
+```
+
+Tryb watch:
+
+```bash
+npm run test:watch
+```
+
+Raport pokrycia:
+
+```bash
+npm run test:coverage
+```
+
 ## Deploy na MyDevil
 
 1. Lokalnie: `npm run build`

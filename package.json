@@ -6,6 +6,9 @@
   "scripts": {
     "dev": "nodemon --exec tsx src/server.ts",
     "build": "rimraf dist && tsc",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
     "start": "node app.js",
     "deploy": "npm run build && tar -czf deploy.tar.gz app.js dist package.json package-lock.json && scp deploy.tar.gz contdev@s56.mydevil.net:~/domains/api.spottedlezajsk.pl/public_nodejs/ && ssh contdev@s56.mydevil.net \"cd ~/domains/api.spottedlezajsk.pl/public_nodejs && rm -rf dist node_modules app.js package.json package-lock.json && tar -xzf deploy.tar.gz && rm deploy.tar.gz && npm install --production && devil www restart api.spottedlezajsk.pl\" && rm deploy.tar.gz",
     "deploy:assets": "tar -czf assets.tar.gz -C public . && scp assets.tar.gz contdev@s56.mydevil.net:~/domains/api.spottedlezajsk.pl/public_nodejs/ && ssh contdev@s56.mydevil.net \"cd ~/domains/api.spottedlezajsk.pl/public_nodejs && rm -rf public && mkdir -p public && tar -xzf assets.tar.gz -C public && rm assets.tar.gz\" && rm assets.tar.gz"
@@ -27,12 +30,16 @@
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.0",
     "@types/hpp": "^0.2.6",
-    "@types/multer": "^1.4.12",
-    "@types/node": "^22.0.0",
-    "@types/nodemailer": "^6.4.17",
+    "@types/multer": "^2.0.0",
+    "@types/node": "^25.3.1",
+    "@types/nodemailer": "^7.0.11",
+    "@types/supertest": "^7.2.0",
+    "@vitest/coverage-v8": "^4.0.18",
     "nodemon": "^3.1.0",
     "rimraf": "^6.0.0",
+    "supertest": "^7.2.2",
     "tsx": "^4.19.0",
-    "typescript": "^5.7.0"
+    "typescript": "^5.7.0",
+    "vitest": "^4.0.18"
   }
 }
