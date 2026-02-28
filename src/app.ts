@@ -6,6 +6,7 @@ import rateLimit from 'express-rate-limit';
 
 import { RATE_LIMIT_MAX, RATE_LIMIT_WINDOW_MS } from './constants';
 import uploadRoutes from './routes/upload';
+import workRoutes from './routes/work';
 import { errorHandler } from './middleware/errorHandler';
 
 const app = express();
@@ -54,10 +55,26 @@ app.disable('x-powered-by');
 
 app.use(express.json({ limit: '100kb' }));
 
+function getAllowedCorsOrigins(): string[] {
+  const envOrigins = process.env.CORS_ORIGINS;
+  if (!envOrigins) {
+    return ['https://spottedlezajsk.pl', 'https://www.spottedlezajsk.pl'];
+  }
+
+  const origins = envOrigins
+    .split(',')
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+
+  return origins.length > 0
+    ? origins
+    : ['https://spottedlezajsk.pl', 'https://www.spottedlezajsk.pl'];
+}
+
 app.use(
   cors({
-    origin: ['https://spottedlezajsk.pl', 'https://www.spottedlezajsk.pl'],
-    methods: ['POST', 'OPTIONS'],
+    origin: getAllowedCorsOrigins(),
+    methods: ['GET', 'POST', 'OPTIONS'],
     allowedHeaders: ['Content-Type'],
     credentials: false,
   }),
@@ -77,6 +94,7 @@ const limiter = rateLimit({
 
 app.use('/upload', limiter);
 app.use(uploadRoutes);
+app.use(workRoutes);
 
 app.get(/.*/, (_req, res) => {
   res.send('x');
