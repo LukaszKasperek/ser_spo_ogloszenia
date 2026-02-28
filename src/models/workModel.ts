@@ -13,7 +13,7 @@ const workSchema = new Schema(
   {
     slug: { type: String, required: true, unique: true, trim: true },
     title: { type: String, required: true, trim: true },
-    contact: { type: contactSchema, default: () => ({}) },
+    contact: { type: contactSchema, default: () => ({}), select: false },
     description: { type: String, required: true, trim: true },
     tags: { type: [String], default: [] },
     author: { type: String, required: true, select: false, trim: true },
@@ -25,7 +25,6 @@ const workSchema = new Schema(
   },
 );
 
-workSchema.index({ slug: 1 }, { unique: true });
 workSchema.index({ createdAt: -1, _id: -1 });
 
 export type WorkDocument = InferSchemaType<typeof workSchema>;

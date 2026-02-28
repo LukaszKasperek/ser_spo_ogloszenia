@@ -29,3 +29,24 @@ export const favoritesBodySchema = z.object({
     .min(1, 'Lista ulubionych nie moze byc pusta')
     .max(100, 'Maksymalnie 100 elementow na zapytanie'),
 });
+
+const optionalTrimmedString = z
+  .string()
+  .trim()
+  .transform((value) => (value === '' ? undefined : value))
+  .optional();
+
+export const workContactResponseSchema = z
+  .object({
+    email: optionalTrimmedString.pipe(z.email().optional()),
+    address: optionalTrimmedString,
+    phone: optionalTrimmedString.pipe(
+      z
+        .string()
+        .min(3, 'Telefon jest za krotki')
+        .max(32, 'Telefon jest za dlugi')
+        .regex(/^[\d+\s().-]+$/, 'Nieprawidlowy numer telefonu')
+        .optional(),
+    ),
+  })
+  .strict();

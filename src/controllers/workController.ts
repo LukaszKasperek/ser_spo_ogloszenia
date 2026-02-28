@@ -4,6 +4,7 @@ import { Types } from 'mongoose';
 import { WorkModel } from '../models/workModel';
 import {
   favoritesBodySchema,
+  workContactResponseSchema,
   workIdParamsSchema,
   workListQuerySchema,
 } from '../validation/workSchemas';
@@ -65,9 +66,9 @@ export async function getWorkContact(
     return;
   }
 
-  const workContact = await WorkModel.findById(validation.data.id, {
-    contact: 1,
-  })
+  const workContact = await WorkModel.findById(validation.data.id)
+    .select({ contact: 1 })
+    .select('+contact')
     .lean()
     .exec();
 
@@ -76,7 +77,17 @@ export async function getWorkContact(
     return;
   }
 
-  res.status(200).json({ contact: workContact.contact ?? {} });
+  const validatedContact = workContactResponseSchema.safeParse(
+    workContact.contact ?? {},
+  );
+  if (!validatedContact.success) {
+    res
+      .status(500)
+      .json({ error: 'Nieprawidlowe dane kontaktowe ogloszenia.' });
+    return;
+  }
+
+  res.status(200).json({ contact: validatedContact.data });
 }
 
 export async function postWorkFavorites(

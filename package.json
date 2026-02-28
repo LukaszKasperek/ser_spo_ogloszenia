@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "nodemon --exec tsx src/server.ts",
     "build": "rimraf dist && tsc",
+    "seed": "tsx data/seeds/seed.ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",

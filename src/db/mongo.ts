@@ -2,8 +2,22 @@ import mongoose from 'mongoose';
 import { z } from 'zod';
 
 const mongoEnvSchema = z.object({
-  MONGODB_URI: z.string().trim().min(1, 'MONGODB_URI jest wymagane'),
   MONGODB_DB_NAME: z.string().trim().min(1, 'MONGODB_DB_NAME jest wymagane'),
+  MONGODB_USER: z.string().trim().min(1, 'MONGODB_USER jest wymagane'),
+  MONGODB_PASSWORD: z
+    .string()
+    .trim()
+    .min(1, 'MONGODB_PASSWORD jest wymagane'),
+  MONGODB_HOST: z.string().trim().default('mongo56.mydevil.net'),
+  MONGODB_PORT: z
+    .preprocess((value) => {
+      if (value === undefined || value === null || value === '') {
+        return 27017;
+      }
+      return Number(value);
+    }, z.number().int().min(1).max(65535))
+    .default(27017),
+  MONGODB_PROTOCOL: z.enum(['mongodb', 'mongodb+srv']).default('mongodb'),
 });
 
 function getMongoEnv(): { uri: string; dbName: string } {
@@ -15,10 +29,29 @@ function getMongoEnv(): { uri: string; dbName: string } {
     );
   }
 
-  return {
-    uri: parsedEnv.data.MONGODB_URI,
-    dbName: parsedEnv.data.MONGODB_DB_NAME,
-  };
+  const {
+    MONGODB_DB_NAME,
+    MONGODB_USER,
+    MONGODB_PASSWORD,
+    MONGODB_HOST,
+    MONGODB_PORT,
+    MONGODB_PROTOCOL,
+  } = parsedEnv.data;
+
+  const normalizedUser = encodeCredential(MONGODB_USER);
+  const normalizedPassword = encodeCredential(MONGODB_PASSWORD);
+  const uri = `${MONGODB_PROTOCOL}://${normalizedUser}:${normalizedPassword}@${MONGODB_HOST}:${MONGODB_PORT}/${MONGODB_DB_NAME}`;
+
+  return { uri, dbName: MONGODB_DB_NAME };
+}
+
+function encodeCredential(value: string): string {
+  // Akceptuje surowe i juz zakodowane dane logowania.
+  try {
+    return encodeURIComponent(decodeURIComponent(value));
+  } catch {
+    return encodeURIComponent(value);
+  }
 }
 
 export async function connectToMongo(): Promise<void> {

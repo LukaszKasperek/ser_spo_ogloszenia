@@ -4,7 +4,12 @@ import helmet from 'helmet';
 import hpp from 'hpp';
 import rateLimit from 'express-rate-limit';
 
-import { RATE_LIMIT_MAX, RATE_LIMIT_WINDOW_MS } from './constants';
+import {
+  API_RATE_LIMIT_MAX,
+  API_RATE_LIMIT_WINDOW_MS,
+  RATE_LIMIT_MAX,
+  RATE_LIMIT_WINDOW_MS,
+} from './constants';
 import uploadRoutes from './routes/upload';
 import workRoutes from './routes/work';
 import { errorHandler } from './middleware/errorHandler';
@@ -80,7 +85,7 @@ app.use(
   }),
 );
 
-const limiter = rateLimit({
+const uploadLimiter = rateLimit({
   max: RATE_LIMIT_MAX,
   windowMs: RATE_LIMIT_WINDOW_MS,
   standardHeaders: true,
@@ -92,7 +97,20 @@ const limiter = rateLimit({
   },
 });
 
-app.use('/upload', limiter);
+const apiLimiter = rateLimit({
+  max: API_RATE_LIMIT_MAX,
+  windowMs: API_RATE_LIMIT_WINDOW_MS,
+  standardHeaders: true,
+  legacyHeaders: false,
+  handler: (_req, res) => {
+    res
+      .status(429)
+      .json({ error: 'Zbyt wiele żądań API, spróbuj ponownie później.' });
+  },
+});
+
+app.use('/api', apiLimiter);
+app.use('/upload', uploadLimiter);
 app.use(uploadRoutes);
 app.use(workRoutes);
 
