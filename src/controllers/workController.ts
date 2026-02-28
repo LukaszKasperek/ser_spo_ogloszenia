@@ -113,7 +113,7 @@ export async function postWorkFavorites(
   const foundIds = new Set(found.map((item) => String(item._id)));
   const missing = uniqueIds
     .filter((id) => !foundIds.has(id))
-    .map((id) => ({ id, message: 'Ogloszenia juz nie ma' }));
+    .map((id) => ({ id, message: 'Ogłoszenie nie aktualne.' }));
 
   res.status(200).json({ found, missing });
 }
