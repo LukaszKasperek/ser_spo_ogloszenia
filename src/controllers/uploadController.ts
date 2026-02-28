@@ -2,11 +2,14 @@ import type { Request, Response } from 'express';
 import { validationResult } from 'express-validator';
 
 import { MAX_TOTAL_FILES_SIZE_BYTES } from '../constants';
+import { pickAllowedFields } from '../utils/pickAllowedFields';
 import { sendEmail } from '../utils/sendMail';
 import {
   validateFileSignatures,
   cleanupUploadedFiles,
 } from '../utils/fileHelpers';
+
+const UPLOAD_BODY_WHITELIST = ['sender', 'message'] as const;
 
 export async function uploadController(
   req: Request,
@@ -23,7 +26,15 @@ export async function uploadController(
   const files: Express.Multer.File[] = Array.isArray(req.files)
     ? req.files
     : [];
-  const { sender, message } = req.body;
+  const uploadPayload = pickAllowedFields(req.body, UPLOAD_BODY_WHITELIST);
+  const sender = uploadPayload.sender;
+  const message = uploadPayload.message;
+
+  if (typeof sender !== 'string' || typeof message !== 'string') {
+    await cleanupUploadedFiles(files);
+    res.status(400).json({ error: 'Nieprawidlowe dane formularza.' });
+    return;
+  }
 
   const totalFilesSize = files.reduce((total, file) => total + file.size, 0);
   if (totalFilesSize > MAX_TOTAL_FILES_SIZE_BYTES) {

@@ -1,6 +1,9 @@
 import mongoose from 'mongoose';
 import { z } from 'zod';
 
+mongoose.set('strictQuery', true);
+mongoose.set('sanitizeFilter', true);
+
 const mongoEnvSchema = z.object({
   MONGODB_DB_NAME: z.string().trim().min(1, 'MONGODB_DB_NAME jest wymagane'),
   MONGODB_USER: z.string().trim().min(1, 'MONGODB_USER jest wymagane'),

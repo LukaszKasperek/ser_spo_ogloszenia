@@ -2,6 +2,7 @@ import type { Request, Response } from 'express';
 import { Types } from 'mongoose';
 
 import { WorkModel } from '../models/workModel';
+import { pickAllowedFields } from '../utils/pickAllowedFields';
 import {
   favoritesBodySchema,
   workContactResponseSchema,
@@ -10,9 +11,13 @@ import {
 } from '../validation/workSchemas';
 
 const publicProjection = { author: 0 } as const;
+const WORK_LIST_QUERY_WHITELIST = ['limit', 'cursor'] as const;
+const FAVORITES_BODY_WHITELIST = ['ids'] as const;
 
 export async function getWorkList(req: Request, res: Response): Promise<void> {
-  const validation = workListQuerySchema.safeParse(req.query);
+  const validation = workListQuerySchema.safeParse(
+    pickAllowedFields(req.query, WORK_LIST_QUERY_WHITELIST),
+  );
   if (!validation.success) {
     res.status(400).json({ error: validation.error.issues[0]?.message });
     return;
@@ -94,7 +99,9 @@ export async function postWorkFavorites(
   req: Request,
   res: Response,
 ): Promise<void> {
-  const validation = favoritesBodySchema.safeParse(req.body);
+  const validation = favoritesBodySchema.safeParse(
+    pickAllowedFields(req.body, FAVORITES_BODY_WHITELIST),
+  );
   if (!validation.success) {
     res.status(400).json({ error: validation.error.issues[0]?.message });
     return;
