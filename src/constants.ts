@@ -15,5 +15,5 @@ export const RATE_LIMIT_MAX = 8;
 export const RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000; // 15 min
 export const API_RATE_LIMIT_MAX = 120;
 export const API_RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000; // 15 min
-export const CONTACT_RATE_LIMIT_MAX = 20;
+export const CONTACT_RATE_LIMIT_MAX = 10;
 export const CONTACT_RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000; // 15 min
