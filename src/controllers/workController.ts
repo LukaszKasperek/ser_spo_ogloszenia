@@ -6,8 +6,8 @@ import { pickAllowedFields } from '../utils/pickAllowedFields';
 import {
   favoritesBodySchema,
   workContactResponseSchema,
-  workIdParamsSchema,
   workListQuerySchema,
+  workSlugParamsSchema,
 } from '../validation/workSchemas';
 
 const publicProjection = { author: 0 } as const;
@@ -42,14 +42,17 @@ export async function getWorkList(req: Request, res: Response): Promise<void> {
   res.status(200).json({ items, nextCursor });
 }
 
-export async function getWorkById(req: Request, res: Response): Promise<void> {
-  const validation = workIdParamsSchema.safeParse(req.params);
+export async function getWorkBySlug(req: Request, res: Response): Promise<void> {
+  const validation = workSlugParamsSchema.safeParse(req.params);
   if (!validation.success) {
     res.status(400).json({ error: validation.error.issues[0]?.message });
     return;
   }
 
-  const work = await WorkModel.findById(validation.data.id, publicProjection)
+  const work = await WorkModel.findOne(
+    { slug: validation.data.slug },
+    publicProjection,
+  )
     .lean()
     .exec();
 
@@ -65,13 +68,13 @@ export async function getWorkContact(
   req: Request,
   res: Response,
 ): Promise<void> {
-  const validation = workIdParamsSchema.safeParse(req.params);
+  const validation = workSlugParamsSchema.safeParse(req.params);
   if (!validation.success) {
     res.status(400).json({ error: validation.error.issues[0]?.message });
     return;
   }
 
-  const workContact = await WorkModel.findById(validation.data.id)
+  const workContact = await WorkModel.findOne({ slug: validation.data.slug })
     .select({ contact: 1 })
     .select('+contact')
     .lean()

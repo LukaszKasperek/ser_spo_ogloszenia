@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import {
-  getWorkById,
+  getWorkBySlug,
   getWorkContact,
   getWorkList,
   postWorkFavorites,
@@ -9,8 +9,8 @@ import {
 const router = Router();
 
 router.get('/api/praca', getWorkList);
-router.get('/api/praca/:id', getWorkById);
-router.get('/api/praca/:id/contact', getWorkContact);
+router.get('/api/praca/:slug', getWorkBySlug);
+router.get('/api/praca/:slug/contact', getWorkContact);
 router.post('/api/praca/favorites', postWorkFavorites);
 
 export default router;

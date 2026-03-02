@@ -7,8 +7,18 @@ const idSchema = z
   .trim()
   .regex(objectIdRegex, 'Nieprawidlowe ID ogloszenia');
 
-export const workIdParamsSchema = z.object({
-  id: idSchema,
+const slugSchema = z
+  .string()
+  .trim()
+  .min(1, 'Slug ogloszenia jest wymagany')
+  .max(120, 'Slug ogloszenia jest za dlugi')
+  .regex(
+    /^[a-z0-9]+(?:-[a-z0-9]+)*$/,
+    'Nieprawidlowy format sluga ogloszenia',
+  );
+
+export const workSlugParamsSchema = z.object({
+  slug: slugSchema,
 });
 
 export const workListQuerySchema = z.object({
