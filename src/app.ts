@@ -7,6 +7,8 @@ import rateLimit from 'express-rate-limit';
 import {
   API_RATE_LIMIT_MAX,
   API_RATE_LIMIT_WINDOW_MS,
+  CONTACT_RATE_LIMIT_MAX,
+  CONTACT_RATE_LIMIT_WINDOW_MS,
   RATE_LIMIT_MAX,
   RATE_LIMIT_WINDOW_MS,
 } from './constants';
@@ -109,13 +111,26 @@ const apiLimiter = rateLimit({
   },
 });
 
+const contactLimiter = rateLimit({
+  max: CONTACT_RATE_LIMIT_MAX,
+  windowMs: CONTACT_RATE_LIMIT_WINDOW_MS,
+  standardHeaders: true,
+  legacyHeaders: false,
+  handler: (_req, res) => {
+    res
+      .status(429)
+      .json({ error: 'Zbyt wiele żądań, spróbuj ponownie później.' });
+  },
+});
+
 app.use('/api', apiLimiter);
+app.use('/api/praca/:slug/contact', contactLimiter);
 app.use('/upload', uploadLimiter);
 app.use(uploadRoutes);
 app.use(workRoutes);
 
 app.get(/.*/, (_req, res) => {
-  res.send('x');
+  res.status(404).send('Not found');
 });
 
 app.use(errorHandler);

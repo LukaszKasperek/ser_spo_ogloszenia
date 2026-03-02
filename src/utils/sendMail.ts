@@ -1,4 +1,5 @@
 import nodemailer from 'nodemailer';
+import { safeFilename } from './fileHelpers';
 
 const transporter = nodemailer.createTransport({
   host: 'smtp.gmail.com',
@@ -10,6 +11,15 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+function escapeHtml(text: string): string {
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
 export async function sendEmail(
   sender: string,
   message: string,
@@ -19,9 +29,9 @@ export async function sendEmail(
     from: process.env.EMAIL,
     to: process.env.EMAIL,
     subject: 'Nowa wiadomość APP',
-    html: `<h1>${sender}:</h1><p>${message}</p>`,
+    html: `<h1>${escapeHtml(sender)}:</h1><p>${escapeHtml(message)}</p>`,
     attachments: files.map((file) => ({
-      filename: file.originalname,
+      filename: safeFilename(file.originalname),
       path: file.path,
       contentType: file.mimetype,
     })),
