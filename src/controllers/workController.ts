@@ -42,7 +42,10 @@ export async function getWorkList(req: Request, res: Response): Promise<void> {
   res.status(200).json({ items, nextCursor });
 }
 
-export async function getWorkBySlug(req: Request, res: Response): Promise<void> {
+export async function getWorkBySlug(
+  req: Request,
+  res: Response,
+): Promise<void> {
   const validation = workSlugParamsSchema.safeParse(req.params);
   if (!validation.success) {
     res.status(400).json({ error: validation.error.issues[0]?.message });
