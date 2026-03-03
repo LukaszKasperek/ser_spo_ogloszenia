@@ -1,5 +1,5 @@
 import type { Request, Response } from 'express';
-import { Types } from 'mongoose';
+import mongoose, { Types } from 'mongoose';
 
 import { WorkModel } from '../models/workModel';
 import { pickAllowedFields } from '../utils/pickAllowedFields';
@@ -24,7 +24,9 @@ export async function getWorkList(req: Request, res: Response): Promise<void> {
   }
 
   const { limit, cursor } = validation.data;
-  const filter = cursor ? { _id: { $lt: new Types.ObjectId(cursor) } } : {};
+  const filter = cursor
+    ? { _id: mongoose.trusted({ $lt: new Types.ObjectId(cursor) }) }
+    : {};
 
   const workList = await WorkModel.find(filter, publicProjection)
     .sort({ _id: -1 })
