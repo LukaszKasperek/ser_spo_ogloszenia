@@ -10,9 +10,35 @@ import {
   workSlugParamsSchema,
 } from '../validation/workSchemas';
 
-const publicProjection = { author: 0 } as const;
+const publicProjection = { author: 0, contact: 0 } as const;
 const WORK_LIST_QUERY_WHITELIST = ['limit', 'cursor'] as const;
 const FAVORITES_BODY_WHITELIST = ['ids'] as const;
+
+function inferCreatedAtFromId(id: unknown): string | null {
+  if (id instanceof Types.ObjectId) {
+    return id.getTimestamp().toISOString();
+  }
+
+  if (typeof id === 'string' && Types.ObjectId.isValid(id)) {
+    return new Types.ObjectId(id).getTimestamp().toISOString();
+  }
+
+  return null;
+}
+
+/** Upewnia się, że createdAt jest w odpowiedzi (ISO string) dla frontu. */
+function toPublicWork<
+  T extends { _id?: unknown; createdAt?: Date | string | null },
+>(doc: T): T & { createdAt: string } {
+  const created = doc.createdAt;
+  const createdAt =
+    created instanceof Date
+      ? created.toISOString()
+      : typeof created === 'string' && created.trim() !== ''
+        ? created
+        : inferCreatedAtFromId(doc._id) ?? new Date().toISOString();
+  return { ...doc, createdAt } as T & { createdAt: string };
+}
 
 export async function getWorkList(req: Request, res: Response): Promise<void> {
   const validation = workListQuerySchema.safeParse(
@@ -41,7 +67,7 @@ export async function getWorkList(req: Request, res: Response): Promise<void> {
       ? String(items[items.length - 1]._id)
       : null;
 
-  res.status(200).json({ items, nextCursor });
+  res.status(200).json({ items: items.map(toPublicWork), nextCursor });
 }
 
 export async function getWorkBySlug(
@@ -66,7 +92,7 @@ export async function getWorkBySlug(
     return;
   }
 
-  res.status(200).json(work);
+  res.status(200).json(toPublicWork(work));
 }
 
 export async function getWorkContact(
@@ -116,10 +142,16 @@ export async function postWorkFavorites(
   }
 
   const uniqueIds = [...new Set(validation.data.ids)];
+
+  if (uniqueIds.length === 0) {
+    res.status(200).json({ found: [], missing: [] });
+    return;
+  }
+
   const objectIds = uniqueIds.map((id) => new Types.ObjectId(id));
 
   const found = await WorkModel.find(
-    { _id: { $in: objectIds } },
+    { _id: mongoose.trusted({ $in: objectIds }) },
     publicProjection,
   )
     .lean()
@@ -130,5 +162,5 @@ export async function postWorkFavorites(
     .filter((id) => !foundIds.has(id))
     .map((id) => ({ id, message: 'Ogłoszenie nie aktualne.' }));
 
-  res.status(200).json({ found, missing });
+  res.status(200).json({ found: found.map(toPublicWork), missing });
 }

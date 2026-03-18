@@ -36,7 +36,6 @@ export const workListQuerySchema = z.object({
 export const favoritesBodySchema = z.object({
   ids: z
     .array(idSchema)
-    .min(1, 'Lista ulubionych nie moze byc pusta')
     .max(100, 'Maksymalnie 100 elementow na zapytanie'),
 });
 
